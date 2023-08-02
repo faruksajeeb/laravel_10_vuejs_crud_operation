@@ -17,3 +17,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 Route::resource('products', ProductController::class);
+Route::get('products-export', [ProductController::class, 'export'])->name('products.export');
+Route::get('products-export-pdf', [ProductController::class, 'exportPdf'])->name('products.export.pdf');
+Route::post('products-import', [ProductController::class, 'import'])->name('products.import');

@@ -81,7 +81,7 @@ export default {
             .post("/api/products", this.product)
             .then((result) => {
               console.log(result);
-              if (result.status == 200 && result.data.message == "success") {
+              if (result.status == 200 && result.data.status == "success") {
                 this.$swal("INSERTED!", `${result.data.message}`, "success");
                 this.$router.push("/products");
               } else {
@@ -99,7 +99,12 @@ export default {
               // always executed;
             });
         } else {
-          await axios.put(`/api/products/${this.$route.params.id}`, this.product);
+          await axios
+            .put(`/api/products/${this.$route.params.id}`, this.product)
+            .then((response) => {
+              this.$swal("UPDATED!", "Data has been updated successfully!", "success");
+              this.$router.push("/products");
+            });
         }
       } catch (error) {
         console.error(error);

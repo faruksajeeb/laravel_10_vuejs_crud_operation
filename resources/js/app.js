@@ -11,10 +11,13 @@ import router from './routes.js';
 // Import components
 // import ExampleComponent from './components/ExampleComponent.vue';
 import App from './components/App.vue';
-
+// window.Vue = require('vue');
+// let Fire = new Vue()
+// window.Fire = Fire;
 
 const app = createApp(App);
-   
+
+
 app.config.productionTip = false;
 // app.component('example-component', ExampleComponent);
 app.component('pagination', Bootstrap5Pagination);
