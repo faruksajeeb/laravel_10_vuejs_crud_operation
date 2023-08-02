@@ -1,1 +1,2 @@
 npm install laravel-vue-pagination
+npm install vuex@next --save

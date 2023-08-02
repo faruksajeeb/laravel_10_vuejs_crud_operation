@@ -9,6 +9,15 @@
         </ul>
       </div>
       <form @submit.prevent="submitForm" class="row g-3 needs-validation" novalidate>
+        <div class="form-group">
+          <label for="">Category:</label>
+          <select v-model="product.category_id" id="" class="form-select">
+            <option value="">--choose category--</option>
+            <option :value="category.id" v-for="(category, index) in formatedCategories">
+              {{ category.category_name }}
+            </option>
+          </select>
+        </div>
         <div class="mb-3">
           <label for="name" class="form-label">Name:</label>
           <input
@@ -51,10 +60,12 @@
 
 <script>
 import axios from "axios";
+import { mapGetters } from "vuex";
 export default {
   data() {
     return {
       product: {
+        category_id : '',
         name: "",
         description: "",
         price: 0,
@@ -66,6 +77,15 @@ export default {
     isNewProduct() {
       return !this.$route.path.includes("edit");
     },
+    categories(){
+      return this.$store.state.categories;
+    },
+    // formatedCategories(){
+    //   return this.$store.getters.formatedCategories;
+    // },
+    ...mapGetters([
+      'formatedCategories'
+    ])
   },
   async created() {
     if (!this.isNewProduct) {

@@ -1,5 +1,6 @@
 <script>
 import axios from "axios";
+import { mapGetters } from "vuex";
 export default {
   name: "products",
   data() {
@@ -29,7 +30,7 @@ export default {
       },
       search: "",
     };
-  },
+  },  
   mounted() {
     this.getProducts();
   },
@@ -47,6 +48,19 @@ export default {
     },
     // category_id(value){this.getProducts()}
   },
+  computed:{
+    categories(){
+      return this.$store.state.categories;
+    },
+    // formatedCategories(){
+    //   return this.$store.getters.formatedCategories;
+    // },
+    ...mapGetters([
+      'formatedCategories'
+    ])
+
+  },
+
   methods: {
     async getProducts(page = 1) {
       await axios
@@ -203,10 +217,7 @@ export default {
           </div>
           <select v-model="params.category_id" id="" class="form-select">
             <option value="">--choose category--</option>
-            <option value="1">Mobile</option>
-            <option value="2">Laptop</option>
-            <option value="3">Book</option>
-            <option value="4">T-shart</option>
+            <option :value="category.id" v-for="(category,index) in formatedCategories">{{category.category_name }}</option>
           </select>
           <input
             type="text"
@@ -348,25 +359,25 @@ export default {
               <td class="text-nowrap">{{ product.description.substring(0, 50) }}</td>
               <td class="text-nowrap">{{ product.price }}</td>
               <td class="text-nowrap">
-                <!-- <div class="row gap-1"> -->
+                <div  class="btn-group" role="group" >
                 <router-link
                   :to="`/products/${product.id}`"
-                  class="btn btn-sm btn-primary m-1"
+                  class="btn btn-sm btn-primary"
                   >View</router-link
                 >
                 <router-link
                   :to="`/products/${product.id}/edit`"
-                  class="btn btn-sm btn-success m-1"
+                  class="btn btn-sm btn-success mx-1"
                   >Edit</router-link
                 >
                 <button
                   @click="deleteProduct(product.id)"
                   type="button"
-                  class="btn btn-sm btn-danger m-1"
+                  class="btn btn-sm btn-danger"
                 >
                   Delete
                 </button>
-                <!-- </div> -->
+                </div>
               </td>
             </tr>
           </tbody>
