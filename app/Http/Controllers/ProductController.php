@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\ProductResource;
+use App\Exports\ProductExport;
+use App\Imports\ProductImport;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\ProductExport;
-use App\Imports\ProductImport;
 use PDF;
 
 class ProductController extends Controller
@@ -17,67 +16,67 @@ class ProductController extends Controller
      */
     public function index()
     {
-    //    for($i=0;$i<=20000;$i++){
-    //         Product::create([
-    //             'name' => 'Projector',
-    //             'category_id' => rand(1,5),
-    //             'description' => 'Projecktor Here',
-    //             'price' => 25000,
-    //         ]);
-    //     }
-    //     dd("DONE");
-        $paginate = request('paginate',5);
-        $searchTerm = request('search','');
+        //    for($i=0;$i<=20000;$i++){
+        //         Product::create([
+        //             'name' => 'Projector',
+        //             'category_id' => rand(1,5),
+        //             'description' => 'Projecktor Here',
+        //             'price' => 25000,
+        //         ]);
+        //     }
+        //     dd("DONE");
+        $paginate = request('paginate', 5);
+        $searchTerm = request('search', '');
 
-        $sortField = request('sort_field','created_at');
-        if(!in_array($sortField,['id','name','description','price'])){
+        $sortField = request('sort_field', 'created_at');
+        if (!in_array($sortField, ['id', 'name', 'description', 'price'])) {
             $sortField = 'created_at';
         }
-        $sortDirection = request('sort_direction','created_at');
-        if(!in_array($sortDirection,['asc','desc'])){
+        $sortDirection = request('sort_direction', 'created_at');
+        if (!in_array($sortDirection, ['asc', 'desc'])) {
             $sortDirection = 'desc';
         }
 
         $filled = array_filter(request([
-            'id','name','description','price'
+            'id', 'name', 'description', 'price',
         ]));
 
-        $products = Product::when(count($filled)>0, function($query) use($filled){
-            foreach($filled as $column => $value){
-                $query->where($column,'LIKE','%'.$value.'%');
+        $products = Product::when(count($filled) > 0, function ($query) use ($filled) {
+            foreach ($filled as $column => $value) {
+                $query->where($column, 'LIKE', '%' . $value . '%');
             }
 
         })
-        ->when(request('search','') != '', function($query) use($searchTerm){   
-            $query->search(trim($searchTerm));
-        })
-        ->when(request('category_id','') != '', function($query){
-            $query->where('category_id',request('category_id'));
+            ->when(request('search', '') != '', function ($query) use ($searchTerm) {
+                $query->search(trim($searchTerm));
+            })
+            ->when(request('category_id', '') != '', function ($query) {
+                $query->where('category_id', request('category_id'));
 
-        })->orderBy($sortField,$sortDirection)->paginate($paginate);
+            })->orderBy($sortField, $sortDirection)->paginate($paginate);
 
         // return ProductResource::collection($products);
         return response()->json($products);
     }
 
-    public function export() 
+    public function export()
     {
-        try{
+        try {
             // dd('hello');
             ini_set('max_execution_time', 30 * 60); //30 min
             ini_set('memory_limit', '2048M');
             return Excel::download(new ProductExport, 'users.xlsx');
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => $e->getMessage(),
             ]);
         }
-         
+
     }
-    public function exportPdf() 
+    public function exportPdf()
     {
-        try{
+        try {
             // dd('hello');
             ini_set('max_execution_time', 30 * 60); //30 min
             ini_set('memory_limit', '2048M');
@@ -85,19 +84,19 @@ class ProductController extends Controller
             $pdf = PDF::loadView('product', ['data' => $data]);
             return $pdf->output();
             // return $pdf->download('itsolutionstuff.pdf');
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => $e->getMessage(),
             ]);
         }
-         
+
     }
 
-    public function import() 
+    public function import()
     {
-        Excel::import(new ProductImport,request()->file('file'));
-               
+        Excel::import(new ProductImport, request()->file('file'));
+
         return back();
     }
     /**
@@ -112,13 +111,36 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
+        # dd($request->all());
+
         $request->validate([
             'name' => 'required',
-            'description' => 'required',
+            // 'description' => 'required',
             'price' => 'required',
+            'file' => 'required',
+            // 'gallery_images' => 'required',
         ]);
+
         try {
-            Product::create($request->all());
+            $input = $request->all();
+            if ($request->hasFile('file')) {
+                $file = $request->file('file');
+                $filename = $file->getClientOriginalName();
+                $file->storeAs('uploads/product', $filename, 'public');
+                $input['feature_image'] = $filename;
+            }
+            $galleryImages = [];
+
+            if ($request->hasFile('gallery_images')) {
+                foreach ($request->file('gallery_images') as $file) {
+                    $uploadedPath = $file->store('uploads/product/gallery', 'public'); // Store in 'storage/app/public/uploads'
+                    $galleryImages[] = $uploadedPath;
+                    // $galleryImages[] = $uploadedPath;
+                }
+                $input['gallery_images'] = implode(",", $galleryImages);
+            }
+
+            Product::create($input);
             return response()->json([
                 'status' => 'success',
                 'message' => 'Product Created Successfully!!',

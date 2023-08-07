@@ -13,6 +13,8 @@ class Product extends Model
         'category_id',
         'description',
         'price',
+        'feature_image',
+        'gallery_images',
     ];
 
     public function scopeSearch($query,$term){
