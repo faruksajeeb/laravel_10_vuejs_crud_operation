@@ -356,7 +356,7 @@ export default {
               </td>
               <td class="text-nowrap">{{ product.id }}</td>
               <td class="text-nowrap">{{ product.name }}</td>
-              <td class="text-nowrap">{{ product.description.substring(0, 50) }}</td>
+              <td class="text-nowrap">{{ product.description }}</td>
               <td class="text-nowrap">{{ product.price }}</td>
               <td class="text-nowrap">
                 <div  class="btn-group" role="group" >

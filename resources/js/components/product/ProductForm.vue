@@ -135,8 +135,13 @@
             </div>
           </div>
         </div>
-        <button type="submit" v-if="isNewProduct" class="btn btn-primary">
-          Add Product
+        <div class="progress" v-if="uploadProgress >= 0 && uploadProgress < 100">
+        <div class="progress-bar" role="progressbar" :style="{ width: uploadProgress + '%' }">
+          {{ uploadProgress }}%
+        </div>
+      </div>
+        <button type="submit" v-if="isNewProduct" :disabled="isSubmitting" class="btn btn-primary">
+          {{ submitButtonText }}
         </button>
         <button type="submit" v-else class="btn btn-primary">Update Product</button>
       </form>
@@ -150,6 +155,7 @@ import { mapGetters } from "vuex";
 export default {
   data() {
     return {
+      uploadProgress: -1, // -1 indicates no upload in progress
       imageUrl: null,
       images: [],
       showModal: false,
@@ -167,6 +173,8 @@ export default {
         file: "",
       },
       validationErrors: "",
+      isSubmitting: false,
+      submitButtonText: 'Submit'
     };
   },
   computed: {
@@ -236,6 +244,8 @@ export default {
       this.product.file = null;
     },
     async submitForm() {
+      this.isSubmitting = true;
+      this.submitButtonText = 'Submitting...';
       try {
         this.clearErrors();
 
@@ -251,6 +261,8 @@ export default {
         }
 
         if (this.hasErrors()) {
+          this.isSubmitting = false;
+          this.submitButtonText = 'Submit';
           return;
         }
         if (this.isNewProduct) {
@@ -262,25 +274,35 @@ export default {
           //  console.log(...formData);
           //  return false;
           await axios
-            .post("/api/products", formData)
+            .post("/api/products", formData,{
+        onUploadProgress: progressEvent => {
+          this.uploadProgress = Math.round((progressEvent.loaded / progressEvent.total) * 100);
+        }
+      })
             .then((result) => {
               console.log(result);
               if (result.status == 200 && result.data.status == "success") {
                 this.$swal("INSERTED!", `${result.data.message}`, "success");
-                this.$router.push("/products");
+                this.$router.push("/products");                
+                this.uploadProgress = -1; // Reset progress
               } else {
                 this.$swal("ERROR!", `${result.data.message}`, "error");
+                this.uploadProgress = -1; // Reset progress
               }
             })
             .catch((error) => {
               if (error.response.status == 422) {
                 this.validationErrors = error.response.data.errors;
+                this.uploadProgress = -1; // Reset progress
               } else {
                 this.$swal("ERROR!", `${result.data.message}`, "error");
+                this.uploadProgress = -1; // Reset progress
               }
             })
             .finally(() => {
               // always executed;
+              this.isSubmitting = false;
+              this.submitButtonText = 'Submit';
             });
         } else {
           await axios
@@ -292,6 +314,7 @@ export default {
         }
       } catch (error) {
         console.log(error);
+        this.uploadProgress = -1; // Reset progress
       }
     }, 
     clearErrors() {
