@@ -356,7 +356,8 @@ export default {
               </td>
               <td class="text-nowrap">{{ product.id }}</td>
               <td class="text-nowrap">{{ product.name }}</td>
-              <td class="text-nowrap">{{ product.description }}</td>
+              <td class="text-nowrap" v-if="product.description && ((product.description!=null) || (product.description!==''))">{{ product.description.substring(0,30) }}</td>
+              <td class="text-nowrap" v-else></td>
               <td class="text-nowrap">{{ product.price }}</td>
               <td class="text-nowrap">
                 <div  class="btn-group" role="group" >

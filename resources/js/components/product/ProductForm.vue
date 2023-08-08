@@ -12,8 +12,8 @@
         id="form"
         @submit.prevent="submitForm"
         enctype="multipart/form-data"
-        class="row g-3 needs-validation"  
-        novalidate      
+        class="row g-3 needs-validation"
+        novalidate
       >
         <div class="form-group">
           <label for="">Category <span class="text-danger">*</span>:</label>
@@ -23,6 +23,7 @@
             name="category_id"
             class="form-select"
             :class="{ 'is-invalid': errors.category_id }"
+            @change="liveValidator"
             required
           >
             <option value="">--choose category--</option>
@@ -30,7 +31,9 @@
               {{ category.category_name }}
             </option>
           </select>
-          <div class="invalid-feedback">{{ errors.category_id }}</div>
+          <div class="invalid-feedback" v-if="errors.category_id !== ''">
+            {{ errors.category_id }}
+          </div>
         </div>
         <div class="mb-3">
           <label for="name" class="form-label"
@@ -43,6 +46,7 @@
             name="name"
             v-model="product.name"
             :class="{ 'is-invalid': errors.name }"
+            @input="liveValidator"
             required
           />
           <div class="invalid-feedback">{{ errors.name }}</div>
@@ -54,7 +58,6 @@
             id="description"
             name="description"
             v-model="product.description"
-            
           ></textarea>
         </div>
         <div class="mb-3">
@@ -67,7 +70,6 @@
             id="price"
             name="price"
             v-model="product.price"
-            
           />
           <div class="invalid-feedback">Please enter product name.</div>
         </div>
@@ -136,11 +138,20 @@
           </div>
         </div>
         <div class="progress" v-if="uploadProgress >= 0 && uploadProgress < 100">
-        <div class="progress-bar" role="progressbar" :style="{ width: uploadProgress + '%' }">
-          {{ uploadProgress }}%
+          <div
+            class="progress-bar"
+            role="progressbar"
+            :style="{ width: uploadProgress + '%' }"
+          >
+            {{ uploadProgress }}%
+          </div>
         </div>
-      </div>
-        <button type="submit" v-if="isNewProduct" :disabled="isSubmitting" class="btn btn-primary">
+        <button
+          type="submit"
+          v-if="isNewProduct"
+          :disabled="isSubmitting"
+          class="btn btn-primary"
+        >
           {{ submitButtonText }}
         </button>
         <button type="submit" v-else class="btn btn-primary">Update Product</button>
@@ -174,7 +185,7 @@ export default {
       },
       validationErrors: "",
       isSubmitting: false,
-      submitButtonText: 'Submit'
+      submitButtonText: "Submit",
     };
   },
   computed: {
@@ -205,6 +216,24 @@ export default {
     }
   },
   methods: {
+    liveValidator() {
+      if (!this.product.category_id) {
+        this.errors.category_id = "Please choose a category.";
+      }else{
+        this.errors.category_id = "";
+      }
+      if (!this.product.name) {
+        this.errors.name = "Please enter a name.";
+      }else{
+        this.errors.name = "";
+      }
+
+      if (!this.product.file) {
+        this.errors.file = "Please choose a file.";
+      }else{
+        this.errors.file = "";
+      }
+    },
     handleMultipleFileUpload(event) {
       const files = event.target.files;
       for (let i = 0; i < files.length; i++) {
@@ -238,6 +267,7 @@ export default {
         this.imageUrl = e.target.result;
       };
       reader.readAsDataURL(this.product.file);
+      this.liveValidator();
     },
     removeSingleImage(image, index) {
       this.imageUrl = null;
@@ -245,24 +275,15 @@ export default {
     },
     async submitForm() {
       this.isSubmitting = true;
-      this.submitButtonText = 'Submitting...';
+      this.submitButtonText = " Submitting...";
       try {
         this.clearErrors();
 
-        if (!this.product.category_id) {
-          this.errors.category_id = "Please choose a category.";
-        }
-        if (!this.product.name) {
-          this.errors.name = "Please enter a name.";
-        }
-
-        if (!this.product.file) {
-          this.errors.file = "Please choose a file.";
-        }
+        this.liveValidator();
 
         if (this.hasErrors()) {
           this.isSubmitting = false;
-          this.submitButtonText = 'Submit';
+          this.submitButtonText = "Submit";
           return;
         }
         if (this.isNewProduct) {
@@ -274,16 +295,18 @@ export default {
           //  console.log(...formData);
           //  return false;
           await axios
-            .post("/api/products", formData,{
-        onUploadProgress: progressEvent => {
-          this.uploadProgress = Math.round((progressEvent.loaded / progressEvent.total) * 100);
-        }
-      })
+            .post("/api/products", formData, {
+              onUploadProgress: (progressEvent) => {
+                this.uploadProgress = Math.round(
+                  (progressEvent.loaded / progressEvent.total) * 100
+                );
+              },
+            })
             .then((result) => {
               console.log(result);
               if (result.status == 200 && result.data.status == "success") {
                 this.$swal("INSERTED!", `${result.data.message}`, "success");
-                this.$router.push("/products");                
+                this.$router.push("/products");
                 this.uploadProgress = -1; // Reset progress
               } else {
                 this.$swal("ERROR!", `${result.data.message}`, "error");
@@ -302,7 +325,7 @@ export default {
             .finally(() => {
               // always executed;
               this.isSubmitting = false;
-              this.submitButtonText = 'Submit';
+              this.submitButtonText = "Submit";
             });
         } else {
           await axios
@@ -316,17 +339,18 @@ export default {
         console.log(error);
         this.uploadProgress = -1; // Reset progress
       }
-    }, 
+    },
     clearErrors() {
-      this.errors.category_id = '';
-      this.errors.name = '';
-      this.errors.file = '';
+      this.errors.category_id = "";
+      this.errors.name = "";
+      this.errors.file = "";
     },
     hasErrors() {
       return this.errors.category_id || this.errors.name || this.errors.file;
-    }
+    },
   },
 };
+
 </script>
 
 <style scope>
