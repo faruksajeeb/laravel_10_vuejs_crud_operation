@@ -124,17 +124,22 @@ class ProductController extends Controller
         try {
             $input = $request->all();
             if ($request->hasFile('file')) {
+                $destinationPath = 'assets/product/';
                 $file = $request->file('file');
                 $filename = $file->getClientOriginalName();
-                $file->storeAs('uploads/product', $filename, 'public');
-                $input['feature_image'] = $filename;
+                // $file->storeAs('uploads/product', $filename, 'public');
+                $uploadedPath = $file->move(public_path($destinationPath), $filename);
+                $input['feature_image'] = $destinationPath.$filename;
             }
             $galleryImages = [];
 
             if ($request->hasFile('gallery_images')) {
                 foreach ($request->file('gallery_images') as $file) {
-                    $uploadedPath = $file->store('uploads/product/gallery', 'public'); // Store in 'storage/app/public/uploads'
-                    $galleryImages[] = $uploadedPath;
+                    $destinationPath = 'assets/product/gallery/';
+                    $filename = $file->getClientOriginalName();
+                    // $uploadedPath = $file->store('uploads/product/gallery', 'public'); // Store in 'storage/app/public/uploads'
+                    $uploadedPath = $file->move(public_path($destinationPath), $filename);
+                    $galleryImages[] = $destinationPath.$filename;
                     // $galleryImages[] = $uploadedPath;
                 }
                 $input['gallery_images'] = implode(",", $galleryImages);

@@ -236,12 +236,7 @@ export default {
               </th>
               <th scope="col">
                 <a href="#" @click.prevent="changeShort('id')">#ID</a>
-                <span
-                  v-if="
-                    this.params.sort_field == 'id' && this.params.sort_direction == 'asc'
-                  "
-                  >↑</span
-                >
+                <span v-if="this.params.sort_field == 'id' && this.params.sort_direction == 'asc'">↑</span>
                 <span
                   v-if="
                     this.params.sort_field == 'id' && this.params.sort_direction == 'desc'
@@ -267,6 +262,7 @@ export default {
                   >↓</span
                 >
               </th>
+              <th>Image</th>
               <th scope="col">
                 <a href="#" @click.prevent="changeShort('description')">Description</a>
                 <!-- <a href="#">Description</a> -->
@@ -324,6 +320,7 @@ export default {
                   v-model="params.name"
                 />
               </th>
+              <th></th>
               <th>
                 <input
                   type="text"
@@ -356,6 +353,10 @@ export default {
               </td>
               <td class="text-nowrap">{{ product.id }}</td>
               <td class="text-nowrap">{{ product.name }}</td>
+              <td >
+              <!-- {{ product.feature_image }} -->
+              <img :src="product.feature_image" alt="" width="100">
+              </td>
               <td class="text-nowrap" v-if="product.description && ((product.description!=null) || (product.description!==''))">{{ product.description.substring(0,30) }}</td>
               <td class="text-nowrap" v-else></td>
               <td class="text-nowrap">{{ product.price }}</td>
